@@ -1,0 +1,40 @@
+# Virtual Environment
+know-asist/
+venv/
+env/
+.env/
+.venv/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Local development settings
+.env
+.env.local
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+backend/__pycache__/
+backend/venv/
+backend/.env
+backend/.env.local
+backend/.venv
+backend/.idea
+backend/.vscode
+
+backend/document_store/
