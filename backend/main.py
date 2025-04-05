@@ -14,6 +14,13 @@ from pydantic import BaseModel
 from openai import OpenAI
 import requests
 
+from mcp.document_provider import DocumentContextProvider
+from mcp.profile_provider import ProfileContextProvider
+from mcp.context_builder import MCPContextBuilder
+
+
+
+
 # Load embedding model
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
@@ -24,6 +31,9 @@ chroma_client = chromadb.Client()
 COLLECTION_NAME = "knowledge"
 collection = chroma_client.get_or_create_collection(name=COLLECTION_NAME)
 
+doc_provider = DocumentContextProvider(collection=collection, embedding_model=embedding_model)
+profile_provider = ProfileContextProvider()
+context_builder = MCPContextBuilder(providers=[doc_provider, profile_provider])
 
 # Add a dictionary to track processing status
 processing_status = {}
@@ -122,20 +132,15 @@ class QueryRequest(BaseModel):
 
 @app.post("/query")
 def query_docs(request: QueryRequest):
-    query_embedding = embedding_model.encode([request.question])[0]
-    # print('Printing the query embedding', query_embedding)
-    results = collection.query(query_embeddings=[query_embedding], n_results=request.top_k)
-    print('Printing the results of the query', results)
-    top_chunks = results['documents'][0]
-    print('Printing the top chunks for sending to the LLM', top_chunks)
+    # query_embedding = embedding_model.encode([request.question])[0]
+    # # print('Printing the query embedding', query_embedding)
+    # results = collection.query(query_embeddings=[query_embedding], n_results=request.top_k)
+    # print('Printing the results of the query', results)
+    # top_chunks = results['documents'][0]
+    # print('Printing the top chunks for sending to the LLM', top_chunks)
 
-    prompt = f"""You are a helpful assistant. Use the following context to answer the question.
-
-Context:
-{chr(10).join(top_chunks)}
-
-Question: {request.question}
-Answer:"""
+    prompt = context_builder.build_prompt(request.question)
+    print('Printing the prompt for sending to the LLM', prompt)
 
     # 🧠 Call local LLM using Ollama
     response = requests.post(
